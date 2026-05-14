@@ -4,22 +4,20 @@
 
 This repository contains an end-to-end RNA-seq differential expression and downstream reporting workflow developed in R and Python using a publicly available influenza infection dataset (GSE203539).
 
-The project combines upstream RNA-seq differential expression analysis using DESeq2 with downstream data consolidation, annotation, visualization, and exploratory reporting workflows designed to support reproducible bioscience data analysis.
+The project combines upstream RNA-seq differential expression analysis using DESeq2 with downstream workflows for data consolidation, annotation, visualization, and exploratory reporting, designed to support reproducible bioscience data analysis.
 
-## Project Overview
+## Analytical Objective
 
-The workflow includes:
+RNA-seq differential expression workflows often generate fragmented outputs across multiple tools, making downstream interpretation, reporting, and reproducibility difficult to standardize.
 
-- RNA-seq count data preprocessing and experimental metadata organization
-- Quality control (QC) and diagnostic analyses
-- PCA-based sample assessment and outlier sensitivity analysis
-- Differential expression analysis using DESeq2
-- Cross-contrast DEG consolidation and annotation
-- Visualization of differential expression and biological trends
-- Lightweight annotation text mining for exploratory gene ontology interpretation
-- Exportable reporting tables and reproducible outputs
+This project explores how reproducible R and Python workflows can improve quality control, differential expression analysis, downstream data consolidation, and the efficiency of biological reporting for RNA-seq datasets.
 
-The project emphasizes transparent QC decision-making, reproducible workflows, and structured downstream reporting for biological interpretation.
+The workflow emphasizes:
+- transparent QC and outlier assessment
+- reproducible differential expression analysis
+- standardized DEG aggregation across contrasts
+- scalable reporting and visualization workflows
+- interpretable downstream biological summaries
 
 ---
 
