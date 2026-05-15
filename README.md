@@ -1,91 +1,92 @@
-# rna-seq-deseq2-workflow
+# 🧬 RNA-seq DESeq2 Differential Expression and Reporting Workflow
 
-## Reproducible RNA-seq Differential Expression and Reporting Workflow
+Reproducible RNA-seq QC, differential expression analysis, and downstream reporting workflows designed to improve transparency, reproducibility, and scalability in bioscience data analysis pipelines.
 
-This repository contains an end-to-end RNA-seq differential expression and downstream reporting workflow developed in R and Python using a publicly available influenza infection dataset (GSE203539).
+This project combines:
 
-The project combines upstream RNA-seq differential expression analysis using DESeq2 with downstream workflows for data consolidation, annotation, visualization, and exploratory reporting, designed to support reproducible bioscience data analysis.
+- upstream RNA-seq QC and DESeq2 differential expression analysis in R  
+  📄 [Workflow summary PDF](rna_seq_deseq2_workflow_summary.pdf)
 
-## Analytical Objective
-
-RNA-seq differential expression workflows often generate fragmented outputs across multiple tools, making downstream interpretation, reporting, and reproducibility difficult to standardize.
-
-This project explores how reproducible R and Python workflows can improve quality control, differential expression analysis, downstream data consolidation, and the efficiency of biological reporting for RNA-seq datasets.
-
-The workflow emphasizes:
-- transparent QC and outlier assessment
-- reproducible differential expression analysis
-- standardized DEG aggregation across contrasts
-- scalable reporting and visualization workflows
-- interpretable downstream biological summaries
+- downstream reporting, aggregation, and exploratory analysis workflows in Python *(notebook currently being finalized)*
 
 ---
 
 ## Dataset
 
-Public RNA-seq dataset:
+Public GEO dataset: **GSE203539**
 
-- GEO accession: GSE203539
-- Model: Influenza A virus (IAV) infection in mouse lung cell populations
-- Cell types:
-  - Alveolar epithelial cells (AEC)
-  - Alveolar macrophages (AM)
+Model:
+- Influenza A virus (IAV) infection
+- Mouse lung cell populations
 
-Experimental comparisons include:
+Cell types:
+- Alveolar epithelial cells (AEC)
+- Alveolar macrophages (AM)
 
+Experimental contrasts:
 - WSN vs Mock
 - WSN_PP1 vs WSN
 
 ---
 
-## Workflow Structure
+## Methods Overview
+
+### RNA-seq Analysis (R)
+- DESeq2 differential expression analysis
+- PCA and sample distance QC diagnostics
+- Outlier sensitivity analysis
+- Volcano plots and DEG heatmaps
+- Reproducible export workflows
+
+### Downstream Reporting (Python)
+- DEG consolidation across contrasts
+- Metadata cleaning and aggregation
+- Exploratory annotation text mining
+- Reporting-oriented visualization workflows
+
+High-confidence DEGs were defined using:
+- adjusted p-value ≤ 0.005
+- absolute log2 fold-change > 2
+
+---
+
+## Example Outputs
+
+### Sensitivity Analysis
+
+![Sensitivity Analysis](results/sensitivity_log2fc_all_vs_filtered.png)
+
+### Differential Expression Visualization
+
+![Enhanced Volcano Plot](results/enhanced_volcano_AEC_WSN_vs_mock.png)
+
+### Top DEG Heatmap
+
+![Top DEG Heatmap](results/heatmap_top25_AM_WSN_PP1_vs_WSN.png)
+
+---
+
+## Repository Structure
 
 ```text
 rna-seq-deseq2-workflow/
 │
 ├── README.md
 ├── environment.yml
+├── DESeq2_GSE203539.Rmd
+├── rna_seq_deseq2_workflow_summary.pdf
 ├── data/
-├── scripts/
-│   ├── DESeq2_GSE203539_portfolio_revised.Rmd
-│   └── helper_functions.R
-├── notebooks/
-│   └── downstream_reporting_and_go_analysis.ipynb
-├── results/
-│   ├── figures/
-│   ├── tables/
-│   └── deg_outputs/
-└── docs/
+└── results/
 ```
 
 ---
 
-## Methods Summary
-
-### Upstream RNA-seq Analysis (R)
-
-- DESeq2 differential expression workflow
-- PCA and sample distance diagnostics
-- Outlier sensitivity analysis
-- Volcano plots and heatmaps
-- DEG filtering and summary reporting
-
-### Downstream Reporting and Analysis (Python)
-
-- Consolidation of annotated DEG outputs
-- Metadata cleaning and aggregation
-- Cross-contrast DEG summaries
-- Exploratory annotation text mining
-- Reporting-focused visualizations and export utilities
-
----
-
-## Key Tools and Libraries
+## Tools and Libraries
 
 ### R
 - DESeq2
 - ggplot2
-- pheatmap
+- ComplexHeatmap
 - EnhancedVolcano
 - tidyverse
 
@@ -95,27 +96,3 @@ rna-seq-deseq2-workflow/
 - matplotlib
 - seaborn
 - scikit-learn
-
----
-
-## Reproducibility
-
-This repository is organized to support reproducible analysis and reporting workflows.
-
-The workflow documents:
-- sample QC procedures
-- sensitivity analyses
-- filtering decisions
-- DEG thresholds
-- exported intermediate and final outputs
-
----
-
-## Repository Goals
-
-This project was developed to demonstrate:
-- reproducible bioscience data workflows
-- RNA-seq differential expression analysis
-- structured QC and analytical reasoning
-- downstream reporting automation
-- integration of R and Python workflows for scientific data analysis
