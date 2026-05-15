@@ -1,0 +1,1133 @@
+---
+title: "RNA-seq DESeq2 Differential Expression and QC Workflow"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    number_sections: false
+    latex_engine: xelatex
+fontsize: 10pt
+geometry: margin=0.8in
+mainfont: Arial
+header-includes:
+  - \usepackage{titling}
+  - \usepackage{graphicx}
+  - \usepackage{xcolor}
+  - \usepackage{sectsty}
+  - \definecolor{brandnavy}{HTML}{1F3347}
+  - \definecolor{brandteal}{HTML}{2C8C99}
+  - \sectionfont{\color{brandnavy}}
+  - \subsectionfont{\color{brandnavy}}
+  - \pretitle{\begin{center}\includegraphics[width=0.30\textwidth]{logo.png}\\[0.8em]\Large\bfseries\color{brandnavy}}
+  - \posttitle{\end{center}}
+  - \predate{\begin{center}\large\color{brandnavy}}
+  - \postdate{\end{center}}
+  - \newpage
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,
+                        fig.align = "center", out.width = "85%")
+
+
+set.seed(42)
+```
+
+# Overview
+
+This workflow demonstrates a reproducible RNA-seq differential expression and 
+reporting pipeline using the public GEO dataset GSE203539.
+
+Raw sequencing data were originally processed through a Galaxy-based RNA-seq 
+pipeline including quality assessment, read trimming, alignment to the GRCm39 
+reference genome, and feature-level quantification prior to downstream analysis.
+
+This repository focuses on downstream quality control, outlier sensitivity 
+assessment, DESeq2 differential expression analysis, and structured result export
+workflows in R.
+
+# Analysis Plan
+
+1. Load RNA-seq count data from `data/all_counts.txt`
+2. Parse sample metadata
+3. Perform QC and exploratory diagnostics on all samples
+4. Evaluate pre-identified outlier samples through sensitivity analysis
+5. Run filtered DESeq2 differential expression analysis
+6. Export QC figures, DEG tables, and summary outputs to `results/`
+7. Define high-confidence DEGs using adjusted p-value ≤ 0.005 and absolute log2 fold change > 2.
+
+# Load packages {.unnumbered .unlisted}
+
+```{r load-packages}
+required_packages <- c(
+  "DESeq2",
+  "EnhancedVolcano",
+  "org.Mm.eg.db",
+  "AnnotationDbi",
+  "SummarizedExperiment",
+  "ComplexHeatmap",
+  "circlize",
+  "grid",
+  "ggplot2",
+  "ggrepel",
+  "dplyr",
+  "tidyr",
+  "readr",
+  "stringr",
+  "tibble",
+  "purrr"
+)
+
+missing_packages <- required_packages[!vapply(required_packages, requireNamespace,
+                                              logical(1), quietly = TRUE)]
+
+if (length(missing_packages) > 0) {
+  stop(
+    "Missing required package(s): ",
+    paste(missing_packages, collapse = ", "),
+    "\nInstall missing packages before knitting this workflow."
+  )
+}
+
+library(DESeq2)
+library(EnhancedVolcano)
+library(ComplexHeatmap)
+library(circlize)
+library(grid)
+library(SummarizedExperiment)
+library(org.Mm.eg.db)
+library(AnnotationDbi)
+library(ggplot2)
+library(ggrepel)
+library(pheatmap)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(stringr)
+library(tibble)
+library(purrr)
+```
+
+# Project paths {.unnumbered .unlisted}
+
+```{r project-paths}
+data_dir <- "data"
+results_dir <- "results"
+figures_dir <- file.path(results_dir, "figures")
+tables_dir <- file.path(results_dir, "tables")
+deg_dir <- file.path(results_dir, "deg_outputs")
+qc_dir <- file.path(results_dir, "qc")
+
+walk(
+  c(results_dir, figures_dir, tables_dir, deg_dir, qc_dir),
+  ~ dir.create(.x, recursive = TRUE, showWarnings = FALSE)
+)
+
+counts_file <- file.path(data_dir, "all_counts.txt")
+annotation_file <- file.path(data_dir, "GRCm39_annotation.txt")
+
+if (!file.exists(counts_file)) {
+  stop("Missing required count matrix: ", counts_file)
+}
+
+# Portfolio-aligned color palette
+brand_navy <- "#1F3347"
+brand_teal <- "#2C8C99"
+brand_red <- "#A94E4E"
+brand_green <- "#3F7F5F"
+brand_blue <- "#3F6FA8"
+brand_purple <- "#6F5A9A"
+brand_gold <- "#9A7A2F"
+brand_gray <- "#4B5563"
+brand_light_gray <- "#EEF1F4"
+
+group_colors <- c(
+  AEC.mock = brand_red,
+  AEC.WSN = brand_green,
+  AEC.WSN_PP1 = brand_blue,
+  AM.mock = brand_purple,
+  AM.WSN = brand_gold,
+  AM.WSN_PP1 = brand_teal
+)
+
+condition_colors <- c(
+  mock = brand_red,
+  WSN = brand_green,
+  WSN_PP1 = brand_blue
+)
+
+cell_type_colors <- c(
+  AEC = brand_teal,
+  AM = brand_navy
+)
+
+outlier_colors <- c(
+  `FALSE` = brand_light_gray,
+  `TRUE` = brand_teal
+)
+
+direction_colors <- c(
+  strict_down = brand_blue,
+  strict_up = brand_red
+)
+
+sensitivity_colors <- c(
+  not_strict_in_either = brand_gray,
+  strict_all_only = brand_gold,
+  strict_filtered_only = brand_teal,
+  strict_in_both = brand_purple
+)
+
+distance_colors <- circlize::colorRamp2(
+  c(0, 200, 400),
+  c(brand_navy, brand_light_gray, brand_red)
+)
+
+zscore_colors <- circlize::colorRamp2(
+  c(-2, 0, 2),
+  c(brand_blue, "white", brand_red)
+)
+```
+
+# Import count matrix {.unnumbered .unlisted}
+
+```{r import-counts, results = 'hide'}
+raw_counts <- read.delim(
+  counts_file,
+  header = TRUE,
+  sep = "\t",
+  check.names = FALSE,
+  stringsAsFactors = FALSE
+)
+
+if (ncol(raw_counts) < 3) {
+  stop("Count matrix appears too small. Expected one gene ID column plus sample count columns.")
+}
+
+# Support both simple count matrices and featureCounts-style tables.
+featurecounts_annotation_cols <- c("Chr", "Start", "End", "Strand", "Length")
+possible_gene_cols <- c("gene_id", "Geneid", "GeneID", "Gene.stable.ID", "gene", "id")
+
+gene_col <- intersect(possible_gene_cols, names(raw_counts))[1]
+
+if (is.na(gene_col)) {
+  gene_col <- names(raw_counts)[1]
+  message("No standard gene ID column found. Using first column as gene_id: ", gene_col)
+}
+
+counts_tbl <- raw_counts %>%
+  rename(gene_id = all_of(gene_col)) %>%
+  select(-any_of(featurecounts_annotation_cols))
+
+# If featureCounts used full BAM paths as sample names, simplify them where possible.
+clean_sample_name <- function(x) {
+  x %>%
+    basename() %>%
+    str_remove("\\.bam$") %>%
+    str_remove("\\.sam$") %>%
+    str_remove("\\.sorted$")
+}
+
+names(counts_tbl) <- c("gene_id", clean_sample_name(names(counts_tbl)[-1]))
+
+sample_cols <- setdiff(names(counts_tbl), "gene_id")
+
+counts_tbl <- counts_tbl %>%
+  mutate(across(all_of(sample_cols), as.numeric))
+
+if (any(is.na(counts_tbl[sample_cols]))) {
+  stop("Count matrix contains NA values after numeric conversion. Check input formatting.")
+}
+
+count_matrix <- counts_tbl %>%
+  group_by(gene_id) %>%
+  summarise(across(all_of(sample_cols), ~ sum(.x, na.rm = TRUE)), .groups = "drop") %>%
+  column_to_rownames("gene_id") %>%
+  as.matrix()
+
+storage.mode(count_matrix) <- "integer"
+
+if (any(count_matrix < 0)) {
+  stop("Count matrix contains negative values, which are invalid for DESeq2.")
+}
+
+cat("Genes:", nrow(count_matrix), "\n")
+cat("Samples:", ncol(count_matrix), "\n")
+```
+
+# Build sample metadata {.unnumbered .unlisted}
+
+```{r build-sample-metadata, results='hide'}
+outlier_samples <- c("AEC.mock.III", "AEC.WSN.PP1.I", "AM.mock.II", "AM.WSN.III")
+
+metadata <- tibble(sample_id = colnames(count_matrix)) %>%
+  mutate(
+    cell_type = case_when(
+      str_starts(sample_id, "AEC\\.") ~ "AEC",
+      str_starts(sample_id, "AM\\.") ~ "AM",
+      TRUE ~ NA_character_
+    ),
+    condition = case_when(
+      str_detect(sample_id, "\\.mock\\.") ~ "mock",
+      str_detect(sample_id, "\\.WSN\\.PP1\\.") ~ "WSN_PP1",
+      str_detect(sample_id, "\\.WSN\\.PP\\.") ~ "WSN_PP1",
+      str_detect(sample_id, "\\.WSN\\.") ~ "WSN",
+      TRUE ~ NA_character_
+    ),
+    replicate = str_extract(sample_id, "[^.]+$"),
+    outlier_flag = sample_id %in% outlier_samples
+  ) %>%
+  mutate(
+    cell_type = factor(cell_type, levels = c("AEC", "AM")),
+    condition = factor(condition, levels = c("mock", "WSN", "WSN_PP1")),
+    replicate = factor(replicate),
+    group = factor(paste(cell_type, condition, sep = "."))
+  )
+
+if (any(is.na(metadata$cell_type)) || any(is.na(metadata$condition))) {
+  print(metadata)
+  stop("Unable to infer cell_type or condition for one or more samples.
+       Check sample naming conventions.")
+}
+
+missing_outliers <- setdiff(outlier_samples, metadata$sample_id)
+
+if (length(missing_outliers) > 0) {
+  warning("Pre-specified outlier sample(s) not found in count matrix: ",
+          paste(missing_outliers, collapse = ", "))
+}
+
+if (!all(metadata$sample_id == colnames(count_matrix))) {
+  stop("Metadata sample order does not match count matrix column order.")
+}
+
+write_csv(metadata, file.path(qc_dir, "sample_metadata_with_outlier_flags.csv"))
+```
+
+# Optional gene annotation {.unnumbered .unlisted}
+
+```{r read-annotation}
+annotation_file <- file.path("data", "GRCm39_annotation.txt")
+
+if (file.exists(annotation_file)) {
+  annotation <- read.delim(
+    annotation_file,
+    header = TRUE,
+    sep = "\t",
+    quote = "\"",
+    check.names = TRUE,
+    stringsAsFactors = FALSE
+  )
+
+  if ("Gene.stable.ID" %in% names(annotation)) {
+    annotation_gene <- annotation[!duplicated(annotation$Gene.stable.ID), ]
+  } else {
+    warning("Annotation file found, but Gene.stable.ID column was not detected.
+            Results will be exported without annotation merge.")
+    annotation_gene <- NULL
+  }
+} else {
+  warning("Optional annotation file not found: ", annotation_file, ". 
+          Results will be exported without annotation merge.")
+  annotation_gene <- NULL
+}
+```
+
+# QC on all samples
+
+Quality control is performed before excluding any samples. The outlier samples 
+are flagged visually and retained in this section.
+
+## Library size
+
+```{r qc-library-size-all}
+library_sizes <- metadata %>%
+  mutate(total_counts = colSums(count_matrix)[sample_id])
+
+p_library <- ggplot(
+  library_sizes,
+  aes(
+    x = reorder(sample_id, total_counts),
+    y = total_counts,
+    fill = group
+  )
+) +
+  geom_col(color = "grey35", linewidth = 0.2) +
+  geom_col(
+    data = library_sizes %>% filter(outlier_flag),
+    aes(x = reorder(sample_id, total_counts), y = total_counts, fill = group),
+    color = "black",
+    linewidth = 0.7
+  ) +
+  scale_fill_manual(values = group_colors) +
+  coord_flip() +
+  facet_wrap(~ cell_type, scales = "free_y") +
+  labs(
+    title = "Library size by sample: all samples",
+    x = "Sample",
+    y = "Total counts",
+    fill = "Group"
+  ) +
+  theme_bw(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", color = brand_navy),
+    panel.grid.minor = element_blank()
+  )
+
+p_library
+
+ggsave(
+  file.path(figures_dir, "qc_library_size_all_samples.png"),
+  p_library,
+  width = 9,
+  height = 6,
+  dpi = 300
+)
+
+write_csv(library_sizes, file.path(qc_dir, "library_sizes_all_samples.csv"))
+```
+
+<!-- Variance-stabilized count transformation is performed prior to PCA and sample-distance analysis. -->
+
+```{r qc-vst-all}
+keep_genes_qc <- rowSums(count_matrix >= 10) >= 2
+
+if (sum(keep_genes_qc) < 100) {
+  stop("Too few genes pass the QC expression filter. Check count matrix input.")
+}
+
+dds_qc_all <- DESeqDataSetFromMatrix(
+  countData = count_matrix[keep_genes_qc, ],
+  colData = metadata %>% as.data.frame() %>% column_to_rownames("sample_id"),
+  design = ~ cell_type + condition
+)
+
+vsd_qc_all <- vst(dds_qc_all, blind = TRUE)
+```
+
+## PCA: all samples 
+
+```{r pca-all-samples, fig.width=7, fig.height=3.8, out.width="85%"}
+pca_all <- plotPCA(
+  vsd_qc_all,
+  intgroup = "group",
+  returnData = TRUE
+) %>%
+  rownames_to_column("sample_id") %>%
+  dplyr::select(sample_id, PC1, PC2, group) %>%
+  dplyr::left_join(
+    metadata %>%
+      dplyr::select(sample_id, outlier_flag),
+    by = "sample_id"
+  ) %>%
+  dplyr::mutate(
+    outlier_label = ifelse(outlier_flag, sample_id, NA_character_)
+  )
+
+percent_var_all <- round(100 * attr(pca_all, "percentVar"))
+
+p_pca_all <- ggplot(
+  pca_all,
+  aes(
+    x = PC1,
+    y = PC2,
+    color = group
+  )
+) +
+  geom_point(size = 3, alpha = 0.95) +
+  ggrepel::geom_text_repel(
+    aes(label = outlier_label),
+    size = 3,
+    max.overlaps = Inf,
+    box.padding = 0.35,
+    point.padding = 0.25,
+    min.segment.length = 0,
+    na.rm = TRUE,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(values = group_colors) +
+  labs(
+    title = "PCA of variance-stabilized counts: all samples",
+    x = paste0("PC1: ", percent_var_all[1], "% variance"),
+    y = paste0("PC2: ", percent_var_all[2], "% variance"),
+    color = "Group"
+  ) +
+  coord_fixed(ratio = 1) +
+  theme_bw(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 12, color = brand_navy),
+    legend.position = "right",
+    panel.grid.minor = element_blank()
+  )
+
+p_pca_all
+
+ggsave(
+  file.path(figures_dir, "qc_pca_all_samples.png"),
+  p_pca_all,
+  width = 7,
+  height = 3.8,
+  dpi = 300
+)
+
+write_csv(pca_all, file.path(qc_dir, "pca_all_samples.csv"))
+```
+
+## Sample distance heatmap: all samples
+
+```{r qc-distance-all}
+sample_dist_all <- dist(t(assay(vsd_qc_all)))
+sample_dist_mat_all <- as.matrix(sample_dist_all)
+
+rownames(sample_dist_mat_all) <- colnames(vsd_qc_all)
+colnames(sample_dist_mat_all) <- colnames(vsd_qc_all)
+
+annotation_col_all <- metadata %>%
+  dplyr::select(sample_id, cell_type, condition, outlier_flag) %>%
+  dplyr::mutate(
+    cell_type = factor(cell_type),
+    condition = factor(condition),
+    outlier_flag = factor(outlier_flag, levels = c(FALSE, TRUE))
+  ) %>%
+  as.data.frame()
+
+rownames(annotation_col_all) <- annotation_col_all$sample_id
+annotation_col_all$sample_id <- NULL
+
+ha_all <- ComplexHeatmap::HeatmapAnnotation(
+  df = annotation_col_all,
+  which = "column",
+  col = list(
+    cell_type = cell_type_colors,
+    condition = condition_colors,
+    outlier_flag = outlier_colors
+  )
+)
+
+ht_all <- ComplexHeatmap::Heatmap(
+  sample_dist_mat_all,
+  name = "Distance",
+  col = distance_colors,
+  top_annotation = ha_all,
+  column_title = "All samples",
+  cluster_rows = TRUE,
+  cluster_columns = TRUE,
+  show_row_names = TRUE,
+  show_column_names = TRUE,
+  row_names_gp = grid::gpar(fontsize = 7),
+  column_names_gp = grid::gpar(fontsize = 7),
+  column_names_rot = 45
+)
+
+png(file.path(figures_dir, "qc_sample_distance_all_samples.png"), width = 2600, height = 2200, res = 300)
+ComplexHeatmap::draw(ht_all, heatmap_legend_side = "right", annotation_legend_side = "right")
+invisible(dev.off())
+
+ComplexHeatmap::draw(ht_all, heatmap_legend_side = "right", annotation_legend_side = "right")
+```
+
+# Helper functions {.unnumbered .unlisted}
+
+```{r helper-functions}
+make_dds_for_cell <- function(counts, sample_metadata, cell, remove_outliers = FALSE) {
+  meta <- sample_metadata %>%
+    filter(cell_type == cell)
+
+  if (remove_outliers) {
+    meta <- meta %>% filter(!outlier_flag)
+  }
+
+  mat <- counts[, meta$sample_id, drop = FALSE]
+  keep <- rowSums(mat >= 10) >= 2
+  mat <- mat[keep, , drop = FALSE]
+
+  meta <- meta %>%
+    mutate(condition = droplevels(condition))
+
+  if (nlevels(meta$condition) < 2) {
+    stop("Fewer than two treatment conditions available for ", cell, ".")
+  }
+
+  dds <- DESeqDataSetFromMatrix(
+    countData = mat,
+    colData = meta %>% as.data.frame() %>% column_to_rownames("sample_id"),
+    design = ~ condition
+  )
+
+  DESeq(dds)
+}
+
+extract_contrast <- function(dds, cell, contrast_label, numerator, denominator, alpha = 0.05) {
+  available_conditions <- unique(as.character(colData(dds)$condition))
+
+  if (!all(c(numerator, denominator) %in% available_conditions)) {
+    warning("Skipping ", contrast_label, ": missing required condition.")
+    return(NULL)
+  }
+
+  res <- results(
+    dds,
+    contrast = c("condition", numerator, denominator),
+    alpha = alpha
+  )
+
+  as.data.frame(res) %>%
+    rownames_to_column("gene_id") %>%
+    mutate(
+      cell_type = cell,
+      contrast = contrast_label,
+      numerator = numerator,
+      denominator = denominator,
+      strict_deg = !is.na(padj) & padj <= 0.005 & abs(log2FoldChange) > 2,
+      regulation = case_when(
+        strict_deg & log2FoldChange > 0 ~ "up",
+        strict_deg & log2FoldChange < 0 ~ "down",
+        TRUE ~ "not_strict"
+      )
+    ) %>%
+    relocate(cell_type, contrast, gene_id)
+}
+
+run_cell_analysis <- function(counts, sample_metadata, cell, analysis_set, remove_outliers = FALSE) {
+  dds <- make_dds_for_cell(counts, sample_metadata, cell, remove_outliers = remove_outliers)
+
+  comparisons <- tibble(
+    contrast = c(
+      paste0(cell, "_WSN_vs_mock"),
+      paste0(cell, "_WSN_PP1_vs_WSN")
+    ),
+    numerator = c("WSN", "WSN_PP1"),
+    denominator = c("mock", "WSN")
+  )
+
+  results_tbl <- pmap_dfr(
+    comparisons,
+    ~ extract_contrast(dds, cell = cell, contrast_label = ..1, numerator = ..2, denominator = ..3)
+  ) %>%
+    mutate(analysis_set = analysis_set) %>%
+    relocate(analysis_set, .after = contrast)
+
+  list(dds = dds, results = results_tbl)
+}
+
+summarize_degs <- function(results_tbl) {
+  results_tbl %>%
+    group_by(analysis_set, cell_type, contrast) %>%
+    summarise(
+      genes_tested = n(),
+      padj_0_05 = sum(!is.na(padj) & padj <= 0.05),
+      padj_0_005 = sum(!is.na(padj) & padj <= 0.005),
+      strict_degs = sum(strict_deg, na.rm = TRUE),
+      strict_up = sum(strict_deg & log2FoldChange > 0, na.rm = TRUE),
+      strict_down = sum(strict_deg & log2FoldChange < 0, na.rm = TRUE),
+      .groups = "drop"
+    )
+}
+
+annotate_results <- function(results_tbl, annotation_gene) {
+  if (is.null(annotation_gene)) {
+    return(results_tbl)
+  }
+
+  results_tbl %>%
+    left_join(annotation_gene, by = c("gene_id" = "Gene.stable.ID"))
+}
+```
+
+# Sensitivity analysis
+## All-sample vs filtered DESeq2 results
+
+This section evaluates whether the pre-specified outlier handling decision alters 
+differential expression results. Both all-sample and filtered analyses are retained 
+and exported for transparency.
+
+High-confidence DEGs were defined using an adjusted p-value threshold ≤ 0.005
+and an absolute log2 fold-change > 2. These thresholds were used for DEG summaries, 
+sensitivity comparisons, and downstream reporting exports.
+
+```{r sensitivity-analysis, results='hide'}
+all_sample_analyses <- map(
+  c("AEC", "AM"),
+  ~ run_cell_analysis(count_matrix, metadata, cell = .x, analysis_set = "all_samples",
+                      remove_outliers = FALSE)
+)
+
+filtered_analyses <- map(
+  c("AEC", "AM"),
+  ~ run_cell_analysis(count_matrix, metadata, cell = .x, analysis_set = "filtered",
+                      remove_outliers = TRUE)
+)
+
+all_sample_results <- map_dfr(all_sample_analyses, "results")
+filtered_results <- map_dfr(filtered_analyses, "results")
+
+sensitivity_results <- bind_rows(all_sample_results, filtered_results)
+sensitivity_summary <- summarize_degs(sensitivity_results)
+
+write_csv(sensitivity_results, file.path(deg_dir, "deseq2_results_all_vs_filtered.csv"))
+write_csv(sensitivity_summary, file.path(tables_dir, "deg_summary_all_vs_filtered.csv"))
+
+sensitivity_summary
+```
+
+```{r sensitivity-gene-level-comparison, results = 'hide'}
+sensitivity_gene_comparison <- sensitivity_results %>%
+  select(cell_type, contrast, analysis_set, gene_id, log2FoldChange, padj, strict_deg) %>%
+  pivot_wider(
+    names_from = analysis_set,
+    values_from = c(log2FoldChange, padj, strict_deg),
+    names_sep = "__"
+  ) %>%
+  mutate(
+    strict_deg__all_samples = replace_na(strict_deg__all_samples, FALSE),
+    strict_deg__filtered = replace_na(strict_deg__filtered, FALSE),
+    delta_log2fc = log2FoldChange__filtered - log2FoldChange__all_samples,
+    strict_status = case_when(
+      strict_deg__all_samples & strict_deg__filtered ~ "strict_in_both",
+      strict_deg__all_samples & !strict_deg__filtered ~ "strict_all_only",
+      !strict_deg__all_samples & strict_deg__filtered ~ "strict_filtered_only",
+      TRUE ~ "not_strict_in_either"
+    )
+  )
+
+sensitivity_overlap_summary <- sensitivity_gene_comparison %>%
+  group_by(cell_type, contrast, strict_status) %>%
+  summarise(n_genes = n(), .groups = "drop")
+
+write_csv(sensitivity_gene_comparison, file.path(tables_dir, "sensitivity_gene_level_comparison.csv"))
+write_csv(sensitivity_overlap_summary, file.path(tables_dir, "sensitivity_overlap_summary.csv"))
+
+sensitivity_overlap_summary
+```
+
+```{r sensitivity-plot}
+p_sensitivity <- sensitivity_gene_comparison %>%
+  filter(!is.na(log2FoldChange__all_samples), !is.na(log2FoldChange__filtered)) %>%
+  ggplot(aes(x = log2FoldChange__all_samples, y = log2FoldChange__filtered, color = strict_status)) +
+  geom_point(alpha = 0.35, size = 1) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  facet_wrap(~ contrast, scales = "free") +
+  labs(
+    title = "Sensitivity analysis: all-sample vs filtered log2 fold change",
+    x = "All-sample log2 fold change",
+    y = "Filtered log2 fold change",
+    color = "Strict DEG status"
+  ) +
+  theme_bw(base_size = 12)
+
+p_sensitivity
+
+ggsave(file.path(figures_dir, "sensitivity_log2fc_all_vs_filtered.png"), p_sensitivity,
+       width = 10, height = 7, dpi = 300)
+```
+The sensitivity analysis shows that most high-confidence DEG calls are stable across
+filtering decisions, while selected contrasts, especially AM inhibitor-response comparisons,
+show larger shifts after outlier removal. This supports retaining both all-sample
+and filtered outputs for transparency.
+
+# Filtered DESeq2 workflow
+
+The remaining workflow uses the filtered dataset, excluding the explicitly flagged outlier samples.
+
+```{r filtered-metadata}
+metadata_filtered <- metadata %>%
+  filter(!outlier_flag)
+
+count_matrix_filtered <- count_matrix[, metadata_filtered$sample_id, drop = FALSE]
+
+write_csv(metadata_filtered, file.path(qc_dir, "sample_metadata_filtered.csv"))
+```
+
+## Filtered PCA
+
+```{r filtered-vst-pca, fig.width=7, fig.height=2.8}
+metadata_filtered <- metadata %>%
+  dplyr::filter(!outlier_flag)
+
+count_matrix_filtered <- count_matrix[, metadata_filtered$sample_id, drop = FALSE]
+
+keep_genes_filtered <- rowSums(count_matrix_filtered >= 10) >= 2
+
+dds_qc_filtered <- DESeq2::DESeqDataSetFromMatrix(
+  countData = count_matrix_filtered[keep_genes_filtered, ],
+  colData = metadata_filtered %>%
+    as.data.frame() %>%
+    tibble::column_to_rownames("sample_id"),
+  design = ~ cell_type + condition
+)
+
+vsd_qc_filtered <- DESeq2::vst(dds_qc_filtered, blind = TRUE)
+
+pca_filtered <- DESeq2::plotPCA(
+  vsd_qc_filtered,
+  intgroup = "group",
+  returnData = TRUE
+) %>%
+  tibble::rownames_to_column("sample_id") %>%
+  dplyr::select(sample_id, PC1, PC2, group)
+
+percent_var_filtered <- round(100 * attr(pca_filtered, "percentVar"))
+
+p_pca_filtered <- ggplot2::ggplot(
+  pca_filtered,
+  ggplot2::aes(
+    x = PC1,
+    y = PC2,
+    color = group
+  )
+) +
+  ggplot2::geom_point(size = 2, alpha = 0.95) +
+  ggplot2::scale_color_manual(values = group_colors) +
+  ggplot2::labs(
+    title = "PCA of variance-stabilized counts: filtered samples",
+    x = paste0("PC1: ", percent_var_filtered[1], "% variance"),
+    y = paste0("PC2: ", percent_var_filtered[2], "% variance"),
+    color = "Group"
+  ) +
+  ggplot2::coord_fixed(ratio = 1) +
+  ggplot2::theme_bw(base_size = 11) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 12, color = brand_navy),
+    legend.position = "right",
+    panel.grid.minor = ggplot2::element_blank(),
+    plot.margin = ggplot2::margin(4, 4, 4, 4)
+  )
+
+p_pca_filtered
+
+ggplot2::ggsave(
+  file.path(figures_dir, "qc_pca_filtered_samples.png"),
+  p_pca_filtered,
+  width = 7,
+  height = 2.8,
+  dpi = 300
+)
+
+readr::write_csv(pca_filtered, file.path(qc_dir, "pca_filtered_samples.csv"))
+```
+PCA of the filtered dataset showed strong separation by cell type along PC1 (93% of variance),
+while condition-related differences were captured along PC2 (3% of variance). These patterns
+support analyzing AEC and AM samples as separate pairwise condition comparisons.
+
+# Export filtered DEG results {.unnumbered .unlisted}
+
+```{r filtered-result-exports, results = 'hide'}
+filtered_results_annotated <- annotate_results(filtered_results, annotation_gene)
+filtered_summary <- summarize_degs(filtered_results)
+strict_filtered_results <- filtered_results_annotated %>%
+  filter(strict_deg) %>%
+  arrange(cell_type, contrast, padj, desc(abs(log2FoldChange)))
+
+write_csv(filtered_results_annotated, file.path(deg_dir, "deseq2_results_filtered_annotated.csv"))
+write_csv(strict_filtered_results, file.path(deg_dir, "strict_deg_results_filtered_padj005_log2fc2.csv"))
+write_csv(filtered_summary, file.path(tables_dir, "deg_summary_filtered.csv"))
+
+# Export one annotated table per contrast for downstream Python reporting.
+filtered_results_annotated %>%
+  group_split(contrast) %>%
+  walk(function(tbl) {
+    contrast_name <- unique(tbl$contrast)
+    output_file <- file.path(deg_dir, paste0(contrast_name, "_DESeq2_annot.csv"))
+    write_csv(tbl, output_file)
+  })
+
+filtered_summary
+```
+
+# Filtered DEG visualizations
+
+## DEG count summary
+
+```{r deg-count-plot}
+p_deg_counts <- filtered_summary %>%
+  select(cell_type, contrast, strict_up, strict_down) %>%
+  pivot_longer(
+    cols = c(strict_up, strict_down),
+    names_to = "direction",
+    values_to = "n_genes"
+  ) %>%
+  ggplot(aes(x = contrast, y = n_genes, fill = direction)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = direction_colors) +
+  coord_flip() +
+  labs(
+    title = "Strict DEG counts in filtered analysis",
+    x = "Contrast",
+    y = "Number of genes",
+    fill = "Direction"
+  ) +
+  theme_bw(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", color = brand_navy),
+    panel.grid.minor = element_blank()
+  )
+
+p_deg_counts
+
+ggsave(
+  file.path(figures_dir, "strict_deg_counts_filtered.png"),
+  p_deg_counts,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+```
+
+## EnhancedVolcano plots with gene labels
+
+```{r enhanced-volcano-plots, results='markup', fig.show='hold', fig.width=5.2, fig.height=4.2, out.width='49%'}
+make_enhanced_volcano <- function(dds, results_tbl, contrast_id, numerator, denominator) {
+  res <- DESeq2::results(
+    dds,
+    contrast = c("condition", numerator, denominator)
+  )
+
+  res_shrunk <- DESeq2::lfcShrink(
+    dds,
+    contrast = c("condition", numerator, denominator),
+    res = res,
+    type = "normal"
+  )
+
+  symbols <- AnnotationDbi::mapIds(
+    org.Mm.eg.db,
+    keys = rownames(res_shrunk),
+    column = "SYMBOL",
+    keytype = "ENSEMBL",
+    multiVals = "first"
+  )
+
+  labels <- symbols[match(rownames(res_shrunk), names(symbols))]
+  labels[is.na(labels)] <- rownames(res_shrunk)[is.na(labels)]
+
+  top_genes <- results_tbl %>%
+    dplyr::filter(contrast == contrast_id) %>%
+    dplyr::filter(!is.na(padj)) %>%
+    dplyr::arrange(padj) %>%
+    dplyr::slice_head(n = 15) %>%
+    dplyr::pull(gene_id)
+
+  EnhancedVolcano::EnhancedVolcano(
+    res_shrunk,
+    lab = labels,
+    selectLab = labels[match(top_genes, rownames(res_shrunk))],
+    x = "log2FoldChange",
+    y = "padj",
+    title = contrast_id,
+    subtitle = paste(numerator, "vs", denominator),
+    pCutoff = 0.005,
+    FCcutoff = 2,
+    drawConnectors = TRUE,
+    widthConnectors = 0.5,
+    pointSize = 2.3,
+    labSize = 3.4,
+    titleLabSize = 12,
+    subtitleLabSize = 10,
+    axisLabSize = 10,
+    legendLabSize = 8,
+    legendIconSize = 3.0
+  )
+}
+
+filtered_dds_AEC <- filtered_analyses[[1]]$dds
+filtered_dds_AM <- filtered_analyses[[2]]$dds
+
+volcano_specs <- tibble::tibble(
+  cell_type = c("AEC", "AEC", "AM", "AM"),
+  contrast = c(
+    "AEC_WSN_vs_mock",
+    "AEC_WSN_PP1_vs_WSN",
+    "AM_WSN_vs_mock",
+    "AM_WSN_PP1_vs_WSN"
+  ),
+  numerator = c("WSN", "WSN_PP1", "WSN", "WSN_PP1"),
+  denominator = c("mock", "WSN", "mock", "WSN")
+)
+
+for (i in seq_len(nrow(volcano_specs))) {
+  spec <- volcano_specs[i, ]
+  dds <- if (spec$cell_type == "AEC") filtered_dds_AEC else filtered_dds_AM
+
+  volcano_plot <- make_enhanced_volcano(
+    dds = dds,
+    results_tbl = filtered_results,
+    contrast_id = spec$contrast,
+    numerator = spec$numerator,
+    denominator = spec$denominator
+  )
+
+  png(
+    file.path(figures_dir, paste0("enhanced_volcano_", spec$contrast, ".png")),
+    width = 2600,
+    height = 2400,
+    res = 300
+  )
+
+  print(volcano_plot)
+
+  invisible(dev.off())
+
+  print(volcano_plot)
+}
+```
+
+## Heatmaps of top DEGs
+
+```{r top-deg-heatmaps, results='markup', fig.show='hold', fig.width=6.8, fig.height=5.4, out.width='80%'}
+row_z_score <- function(x) {
+  if (sd(x, na.rm = TRUE) == 0) {
+    return(rep(0, length(x)))
+  }
+
+  (x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE)
+}
+
+make_top_gene_heatmap <- function(
+  vsd,
+  results_tbl,
+  contrast_id,
+  metadata_subset,
+  top_n = 25,
+  row_font_size = 8,
+  column_font_size = 8,
+  row_name_width_mm = 85
+) {
+  top_genes <- results_tbl %>%
+    dplyr::filter(contrast == contrast_id) %>%
+    dplyr::filter(!is.na(padj)) %>%
+    dplyr::arrange(padj) %>%
+    dplyr::slice_head(n = top_n) %>%
+    dplyr::pull(gene_id)
+
+  top_genes <- intersect(top_genes, rownames(SummarizedExperiment::assay(vsd)))
+
+  if (length(top_genes) < 2) {
+    warning("Too few genes available for heatmap: ", contrast_id)
+    return(NULL)
+  }
+
+  heatmap_mat <- SummarizedExperiment::assay(vsd)[top_genes, , drop = FALSE]
+  heatmap_mat_z <- t(apply(heatmap_mat, 1, row_z_score))
+
+  symbols <- AnnotationDbi::mapIds(
+    org.Mm.eg.db,
+    keys = rownames(heatmap_mat_z),
+    column = "SYMBOL",
+    keytype = "ENSEMBL",
+    multiVals = "first"
+  )
+
+  row_labels <- symbols[match(rownames(heatmap_mat_z), names(symbols))]
+  row_labels[is.na(row_labels)] <- rownames(heatmap_mat_z)[is.na(row_labels)]
+  rownames(heatmap_mat_z) <- make.unique(row_labels)
+
+  annotation_col <- metadata_subset %>%
+    dplyr::select(sample_id, condition) %>%
+    dplyr::mutate(condition = factor(condition)) %>%
+    as.data.frame()
+
+  rownames(annotation_col) <- annotation_col$sample_id
+  annotation_col$sample_id <- NULL
+
+  ha <- ComplexHeatmap::HeatmapAnnotation(
+    df = annotation_col,
+    which = "column",
+    col = list(condition = condition_colors)
+  )
+
+  ComplexHeatmap::Heatmap(
+    heatmap_mat_z,
+    name = "Row Z-score",
+    col = zscore_colors,
+    top_annotation = ha,
+    column_title = paste("Top", top_n, "genes:", contrast_id),
+    cluster_rows = TRUE,
+    cluster_columns = TRUE,
+    show_row_names = TRUE,
+    show_column_names = TRUE,
+    row_names_gp = grid::gpar(fontsize = row_font_size),
+    row_names_max_width = grid::unit(row_name_width_mm, "mm"),
+    column_names_gp = grid::gpar(fontsize = column_font_size),
+    column_names_rot = 45,
+    heatmap_legend_param = list(title = "Row Z-score")
+  )
+}
+
+for (cell in c("AEC", "AM")) {
+  dds <- if (cell == "AEC") filtered_dds_AEC else filtered_dds_AM
+  vsd <- DESeq2::vst(dds, blind = FALSE)
+
+  meta_cell <- metadata_filtered %>%
+    dplyr::filter(cell_type == cell)
+
+  contrast_ids <- unique(filtered_results$contrast[filtered_results$cell_type == cell])
+
+  for (contrast_id in contrast_ids) {
+    ht_export <- make_top_gene_heatmap(
+      vsd = vsd,
+      results_tbl = filtered_results,
+      contrast_id = contrast_id,
+      metadata_subset = meta_cell,
+      top_n = 25,
+      row_font_size = 7,
+      column_font_size = 7,
+      row_name_width_mm = 75
+    )
+
+    ht_inline <- make_top_gene_heatmap(
+      vsd = vsd,
+      results_tbl = filtered_results,
+      contrast_id = contrast_id,
+      metadata_subset = meta_cell,
+      top_n = 25,
+      row_font_size = 6.8,
+      column_font_size = 6.5,
+      row_name_width_mm = 80
+    )
+
+    if (!is.null(ht_export) && !is.null(ht_inline)) {
+      png(
+        file.path(figures_dir, paste0("heatmap_top25_", contrast_id, ".png")),
+        width = 2600,
+        height = 2200,
+        res = 300
+      )
+
+      ComplexHeatmap::draw(
+        ht_export,
+        heatmap_legend_side = "right",
+        annotation_legend_side = "right",
+        padding = grid::unit(c(8, 8, 10, 16), "mm")
+      )
+
+      invisible(dev.off())
+
+      ComplexHeatmap::draw(
+        ht_inline,
+        heatmap_legend_side = "right",
+        annotation_legend_side = "right",
+        padding = grid::unit(c(6, 6, 8, 12), "mm")
+      )
+    }
+  }
+}
+```
+
+# Conclusions
+
+This workflow demonstrates a reproducible RNA-seq analysis and reporting pipeline integrating:
+
+- QC and exploratory diagnostics
+- transparent outlier sensitivity analysis
+- DESeq2 differential expression workflows
+- structured export of annotated DEG outputs
+- downstream-ready reporting artifacts for Python-based aggregation and visualization
+
+The analysis emphasizes reproducibility and transparent analytical decision-making
+rather than biological overinterpretation.
+
+# Reproducibility information
+
+```{r session-info, echo = TRUE}
+sessionInfo()
+```
