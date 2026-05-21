@@ -1,13 +1,34 @@
 # 🧬 RNA-seq DESeq2 Differential Expression and Reporting Workflow
 
-Reproducible RNA-seq QC, differential expression analysis, and downstream reporting workflows designed to improve transparency, reproducibility, and scalability in bioscience data analysis pipelines.
+This workflow turns large gene-expression datasets into clear biological summaries and visualizations, reducing the manual effort traditionally required to interpret results across multiple bioinformatics tools and databases.
+
+<p align="center">
+  <img src="results/figures/workflow_diagram.png" width="650">
+</p>
+End-to-end workflow from raw RNA-seq reads through differential expression analysis, downstream reporting, and biological interpretation.
+
+---
+
+## Key Finding
+
+Influenza infection induced strong antiviral and inflammatory gene-expression responses, while inhibitor treatment reversed many infection-associated changes. Annotation-based theme extraction recovered many of the same broad biological patterns identified through formal GO enrichment, particularly for antiviral immune-response pathways.
+
+<img src="results/figures/figure_1_high_confidence_deg_counts.png" width="750">
+
+### Annotation Theme Extraction
+
+<img src="results/figures/figure_4_contrast_normalized_annotation_phrases.png" width="750">
+
+Contrast-normalized annotation themes highlighted strong interferon and immune-response programs during influenza infection while revealing broader inflammatory and signaling-associated patterns across contrasts. This downstream reporting layer extends beyond standard DESeq2 outputs by integrating annotation-derived biological interpretation directly into reproducible reporting workflows.
+
+---
 
 This project combines:
-
 - upstream RNA-seq QC and DESeq2 differential expression analysis in R  
-  📄 [Workflow summary PDF](rna_seq_deseq2_workflow_summary.pdf)
+  📄 [R pipeline summary PDF](rna_seq_deseq2_workflow_summary.pdf)
 
-- downstream reporting, aggregation, and exploratory analysis workflows in Python *(notebook currently being finalized)*
+- downstream reporting, visualization, and annotation-theme analysis workflows in Python  
+  📓 [Downstream reporting and GO concordance notebook](downstream_reporting_and_go_analysis.ipynb)
 
 ---
 
@@ -15,7 +36,7 @@ This project combines:
 
 Public GEO dataset: **GSE203539**
 
-Model:
+Model system:
 - Influenza A virus (IAV) infection
 - Mouse lung cell populations
 
@@ -29,7 +50,7 @@ Experimental contrasts:
 
 ---
 
-## Methods Overview
+## Methods
 
 ### RNA-seq Analysis (R)
 - DESeq2 differential expression analysis
@@ -41,7 +62,8 @@ Experimental contrasts:
 ### Downstream Reporting (Python)
 - DEG consolidation across contrasts
 - Metadata cleaning and aggregation
-- Exploratory annotation text mining
+- Annotation-based biological theme extraction
+- GO concordance comparison
 - Reporting-oriented visualization workflows
 
 High-confidence DEGs were defined using:
@@ -50,49 +72,52 @@ High-confidence DEGs were defined using:
 
 ---
 
-## Example Outputs
+## Reproducibility
 
-### Sensitivity Analysis
+### Python reporting environment
 
-![Sensitivity Analysis](results/sensitivity_log2fc_all_vs_filtered.png)
+Create the Conda environment:
 
-### Differential Expression Visualization
+```bash
+conda env create -f environment.yml
+conda activate rna-seq-reporting
+```
 
-![Enhanced Volcano Plot](results/enhanced_volcano_AEC_WSN_vs_mock.png)
+Launch Jupyter:
 
-### Top DEG Heatmap
+```bash
+jupyter lab
+```
 
-![Top DEG Heatmap](results/heatmap_top25_AM_WSN_PP1_vs_WSN.png)
-
----
-
-## Repository Structure
+Main downstream notebook:
 
 ```text
-rna-seq-deseq2-workflow/
-│
-├── README.md
-├── environment.yml
-├── DESeq2_GSE203539.Rmd
-├── rna_seq_deseq2_workflow_summary.pdf
-├── data/
-└── results/
+downstream_reporting_and_go_analysis.ipynb
 ```
 
 ---
 
-## Tools and Libraries
+### R / DESeq2 workflow
 
-### R
-- DESeq2
-- ggplot2
-- ComplexHeatmap
-- EnhancedVolcano
-- tidyverse
+Install required R packages listed in:
 
-### Python
-- pandas
-- NumPy
-- matplotlib
-- seaborn
-- scikit-learn
+```text
+R_packages.txt
+```
+
+Main upstream workflow:
+
+```text
+DESeq2_GSE203539.Rmd
+```
+
+---
+
+### Input data
+
+The `data/` directory contains:
+- annotated DESeq2 contrast tables
+- merged count matrix
+- BioMart-derived mouse gene metadata
+
+Public dataset source: GEO accession: `GSE203539`
