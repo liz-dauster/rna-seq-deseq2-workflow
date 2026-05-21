@@ -1,9 +1,0 @@
-analysis_set,cell_type,contrast,genes_tested,padj_0_05,padj_0_005,strict_degs,strict_up,strict_down
-all_samples,AEC,AEC_WSN_PP1_vs_WSN,17236,8732,7118,1211,149,1062
-all_samples,AEC,AEC_WSN_vs_mock,17236,7485,5824,747,419,328
-all_samples,AM,AM_WSN_PP1_vs_WSN,15219,1418,468,163,7,156
-all_samples,AM,AM_WSN_vs_mock,15219,2934,1589,484,392,92
-filtered,AEC,AEC_WSN_PP1_vs_WSN,16653,9584,7621,1336,152,1184
-filtered,AEC,AEC_WSN_vs_mock,16653,8036,5925,787,437,350
-filtered,AM,AM_WSN_PP1_vs_WSN,14777,4597,2218,943,325,618
-filtered,AM,AM_WSN_vs_mock,14777,2473,1184,617,431,186
