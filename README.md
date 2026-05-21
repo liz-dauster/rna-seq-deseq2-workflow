@@ -13,13 +13,15 @@ End-to-end workflow from raw RNA-seq reads through differential expression analy
 
 Influenza infection induced strong antiviral and inflammatory gene-expression responses, while inhibitor treatment reversed many infection-associated changes. Annotation-based theme extraction recovered many of the same broad biological patterns identified through formal GO enrichment, particularly for antiviral immune-response pathways.
 
+### High-Confidence Gene-expression Changes
+
 <img src="results/figures/figure_1_high_confidence_deg_counts.png" width="750">
 
 ### Annotation Theme Extraction
 
 <img src="results/figures/figure_4_contrast_normalized_annotation_phrases.png" width="750">
 
-Contrast-normalized annotation themes highlighted strong interferon and immune-response programs during influenza infection while revealing broader inflammatory and signaling-associated patterns across contrasts. This downstream reporting layer extends beyond standard DESeq2 outputs by integrating annotation-derived biological interpretation directly into reproducible reporting workflows.
+Contrast-normalized annotation themes highlighted strong interferon and immune-response programs during influenza infection while revealing broader inflammatory and signaling-associated patterns across contrasts. This downstream reporting layer extends beyond standard DESeq2 outputs by integrating annotation-derived biological interpretation into reproducible reporting workflows.
 
 ---
 
