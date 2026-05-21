@@ -1,0 +1,11 @@
+cell_type,contrast,direction,tool,top_go_term,go_id,fdr_or_rank,biological_theme
+AEC,WSN vs mock,Upregulated,WebGestalt,defense response to other organism,GO:0098542,top term,antiviral innate immune response
+AEC,WSN vs mock,Upregulated,GOrilla,response to other organism,GO:0051707,top term,antiviral innate immune response
+AEC,WSN_PP1 vs WSN,Downregulated,WebGestalt,cellular response to interferon-beta,GO:0035458,FDR 1.63E-28,interferon beta response
+AEC,WSN_PP1 vs WSN,Downregulated,GOrilla,cellular response to interferon-beta,GO:0035458,FDR 1.63E-28,interferon beta response
+AM,WSN vs mock,Upregulated,WebGestalt,cytokine-mediated signaling pathway,GO:0019221,top term,cytokine signaling and inflammatory response
+AM,WSN vs mock,Upregulated,GOrilla,regulation of response to stimulus,GO:0048583,top term,stimulus response regulation
+AM,WSN_PP1 vs WSN,Mixed high-confidence,WebGestalt,defense response,GO:0006952,top term,immune defense and leukocyte recruitment
+AM,WSN_PP1 vs WSN,Mixed high-confidence,GOrilla,receptor ligand activity,GO:0048018,top term,receptor ligand signaling
+AM,WSN_PP1 vs WSN,Downregulated,GOrilla,positive regulation of RNA metabolic process,GO:0051254,FDR 2.47E-11,RNA metabolic regulation
+AM,WSN_PP1 vs WSN,Downregulated,WebGestalt,interleukin-5 production,GO:0032634,enrichment ratio 10.5; FDR 0.013,interleukin and cytokine production

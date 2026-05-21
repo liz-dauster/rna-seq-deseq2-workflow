@@ -1,0 +1,5 @@
+cell_type,biological_question,contrast,Upregulated,Downregulated,High-confidence total,Not high-confidence
+AEC,Infection response,WSN vs mock,427.0,318.0,745.0,20099.0
+AEC,Inhibitor effect,WSN_PP1 vs WSN,125.0,1168.0,1293.0,19551.0
+AM,Infection response,WSN vs mock,424.0,197.0,621.0,18182.0
+AM,Inhibitor effect,WSN_PP1 vs WSN,343.0,573.0,916.0,17446.0

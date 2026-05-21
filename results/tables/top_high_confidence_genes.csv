@@ -1,0 +1,81 @@
+cell_type,contrast,rank_direction,gene_label,log2FoldChange,padj,biotype,chromosome,gene_id,description
+AEC,WSN vs mock,Upregulated,Isg15,7.54447702477118,0.0,protein_coding,4,ENSMUSG00000035692,ISG15 ubiquitin-like modifier [Source:MGI Symbol;Acc:MGI:1855694]
+AEC,WSN vs mock,Upregulated,Ifit3,7.3728475945658,0.0,protein_coding,19,ENSMUSG00000074896,interferon-induced protein with tetratricopeptide repeats 3 [Source:MGI Symbol;Acc:MGI:1101055]
+AEC,WSN vs mock,Upregulated,Gbp2,7.03952017922057,0.0,protein_coding,3,ENSMUSG00000028270,guanylate binding protein 2 [Source:MGI Symbol;Acc:MGI:102772]
+AEC,WSN vs mock,Upregulated,Gm46878,6.88325198494433,0.0,lncRNA,4,ENSMUSG00000120951,"predicted gene, 46878 [Source:MGI Symbol;Acc:MGI:5826515]"
+AEC,WSN vs mock,Upregulated,Irf7,6.38967728950191,0.0,protein_coding,7,ENSMUSG00000025498,interferon regulatory factor 7 [Source:MGI Symbol;Acc:MGI:1859212]
+AEC,WSN vs mock,Upregulated,Art3,6.31695474951755,0.0,protein_coding,5,ENSMUSG00000034842,ADP-ribosyltransferase 3 [Source:MGI Symbol;Acc:MGI:1202729]
+AEC,WSN vs mock,Upregulated,Oasl2,5.88128937872578,0.0,protein_coding,5,ENSMUSG00000029561,2'-5' oligoadenylate synthetase-like 2 [Source:MGI Symbol;Acc:MGI:1344390]
+AEC,WSN vs mock,Upregulated,Cxcl10,5.8226791773333,0.0,protein_coding,5,ENSMUSG00000034855,C-X-C motif chemokine ligand 10 [Source:MGI Symbol;Acc:MGI:1352450]
+AEC,WSN vs mock,Upregulated,Ifit2,5.12519711570022,0.0,protein_coding,19,ENSMUSG00000045932,interferon-induced protein with tetratricopeptide repeats 2 [Source:MGI Symbol;Acc:MGI:99449]
+AEC,WSN vs mock,Upregulated,Usp18,5.1018421138575,0.0,protein_coding,6,ENSMUSG00000030107,ubiquitin specific peptidase 18 [Source:MGI Symbol;Acc:MGI:1344364]
+AEC,WSN_PP1 vs WSN,Upregulated,Atf4,2.38825880122295,7.686854057378171e-300,protein_coding,15,ENSMUSG00000042406,activating transcription factor 4 [Source:MGI Symbol;Acc:MGI:88096]
+AEC,WSN_PP1 vs WSN,Upregulated,Mt2,4.2493779023365,9.08786417430706e-298,protein_coding,8,ENSMUSG00000031762,metallothionein 2 [Source:MGI Symbol;Acc:MGI:97172]
+AEC,WSN_PP1 vs WSN,Upregulated,Gm45774,4.09403901701863,9.571086085566639e-275,lncRNA,8,ENSMUSG00000110588,predicted gene 45774 [Source:MGI Symbol;Acc:MGI:5804889]
+AEC,WSN_PP1 vs WSN,Upregulated,Krt19,2.12881966773248,6.39503798491013e-257,protein_coding,11,ENSMUSG00000020911,keratin 19 [Source:MGI Symbol;Acc:MGI:96693]
+AEC,WSN_PP1 vs WSN,Upregulated,Mt1,3.13392066297425,1.73666233079851e-249,protein_coding,8,ENSMUSG00000031765,metallothionein 1 [Source:MGI Symbol;Acc:MGI:97171]
+AEC,WSN_PP1 vs WSN,Upregulated,Nr1d1,3.28276176935484,3.86208413241818e-222,protein_coding,11,ENSMUSG00000020889,"nuclear receptor subfamily 1, group D, member 1 [Source:MGI Symbol;Acc:MGI:2444210]"
+AEC,WSN_PP1 vs WSN,Upregulated,Gm73150,2.13186586955093,8.579590630421041e-152,lncRNA,11,ENSMUSG00000131753,"predicted gene, 73150 [Source:MGI Symbol;Acc:MGI:7829058]"
+AEC,WSN_PP1 vs WSN,Upregulated,Mab21l4,2.05911391341949,5.8454479392940806e-151,protein_coding,1,ENSMUSG00000034159,mab-21-like 4 [Source:MGI Symbol;Acc:MGI:1919124]
+AEC,WSN_PP1 vs WSN,Upregulated,Dhrs3,3.85053839318373,3.82455441949823e-118,protein_coding,4,ENSMUSG00000066026,dehydrogenase/reductase 3 [Source:MGI Symbol;Acc:MGI:1315215]
+AEC,WSN_PP1 vs WSN,Upregulated,Tuft1,2.25874254503192,1.07494731868891e-117,protein_coding,3,ENSMUSG00000005968,tuftelin 1 [Source:MGI Symbol;Acc:MGI:109572]
+AM,WSN vs mock,Upregulated,Lif,6.29717621493451,1.25777835691606e-87,protein_coding,11,ENSMUSG00000034394,leukemia inhibitory factor [Source:MGI Symbol;Acc:MGI:96787]
+AM,WSN vs mock,Upregulated,Coq8a,4.92009335921829,1.11961235754273e-51,protein_coding,1,ENSMUSG00000026489,coenzyme Q8A [Source:MGI Symbol;Acc:MGI:1914676]
+AM,WSN vs mock,Upregulated,Gm15270,4.93677357686368,9.13792854774192e-45,lncRNA,10,ENSMUSG00000087400,predicted gene 15270 [Source:MGI Symbol;Acc:MGI:3705149]
+AM,WSN vs mock,Upregulated,Mt1,4.96292928587865,7.5954111812121e-44,protein_coding,8,ENSMUSG00000031765,metallothionein 1 [Source:MGI Symbol;Acc:MGI:97171]
+AM,WSN vs mock,Upregulated,Cxcl14,4.76532890311529,2.5635786372703697e-43,protein_coding,13,ENSMUSG00000021508,C-X-C motif chemokine ligand 14 [Source:MGI Symbol;Acc:MGI:1888514]
+AM,WSN vs mock,Upregulated,Inhba,5.30362791085244,4.79649691329287e-43,protein_coding,13,ENSMUSG00000041324,inhibin beta-A [Source:MGI Symbol;Acc:MGI:96570]
+AM,WSN vs mock,Upregulated,Ccn2,4.90110400960108,8.42193477024976e-41,protein_coding,10,ENSMUSG00000019997,cellular communication network factor 2 [Source:MGI Symbol;Acc:MGI:95537]
+AM,WSN vs mock,Upregulated,Tgm2,2.7610750101137,1.7711165088106798e-36,protein_coding,2,ENSMUSG00000037820,"transglutaminase 2, C polypeptide [Source:MGI Symbol;Acc:MGI:98731]"
+AM,WSN vs mock,Upregulated,Selenow,3.13343066029377,3.3238857388373997e-35,protein_coding,7,ENSMUSG00000041571,selenoprotein W [Source:MGI Symbol;Acc:MGI:1100878]
+AM,WSN vs mock,Upregulated,Best1,5.58455456641216,4.3341616795682e-34,protein_coding,19,ENSMUSG00000037418,bestrophin 1 [Source:MGI Symbol;Acc:MGI:1346332]
+AM,WSN_PP1 vs WSN,Upregulated,Gas6,2.95672281362515,4.3491747827471404e-46,protein_coding,8,ENSMUSG00000031451,growth arrest specific 6 [Source:MGI Symbol;Acc:MGI:95660]
+AM,WSN_PP1 vs WSN,Upregulated,Nxpe5,4.59840253831629,2.79476661558634e-25,protein_coding,5,ENSMUSG00000047592,"neurexophilin and PC-esterase domain family, member 5 [Source:MGI Symbol;Acc:MGI:3584036]"
+AM,WSN_PP1 vs WSN,Upregulated,Tmem255b,2.96310714310101,1.1677399214982e-20,protein_coding,8,ENSMUSG00000038457,transmembrane protein 255B [Source:MGI Symbol;Acc:MGI:2685533]
+AM,WSN_PP1 vs WSN,Upregulated,Steap4,5.39367847757619,5.44739943834235e-18,protein_coding,5,ENSMUSG00000012428,STEAP family member 4 [Source:MGI Symbol;Acc:MGI:1923560]
+AM,WSN_PP1 vs WSN,Upregulated,Mrc1,4.87571429873711,3.38180733000039e-17,protein_coding,2,ENSMUSG00000026712,"mannose receptor, C type 1 [Source:MGI Symbol;Acc:MGI:97142]"
+AM,WSN_PP1 vs WSN,Upregulated,Slc9a9,3.11163807978174,4.14151588981204e-16,protein_coding,9,ENSMUSG00000031129,"solute carrier family 9 (sodium/hydrogen exchanger), member 9 [Source:MGI Symbol;Acc:MGI:2679732]"
+AM,WSN_PP1 vs WSN,Upregulated,Fcgrt,2.32571832501855,2.39870000153308e-14,protein_coding,7,ENSMUSG00000003420,Fc fragment of IgG receptor and transporter [Source:MGI Symbol;Acc:MGI:103017]
+AM,WSN_PP1 vs WSN,Upregulated,Gda,2.57682635123816,4.05482072842001e-14,protein_coding,19,ENSMUSG00000058624,guanine deaminase [Source:MGI Symbol;Acc:MGI:95678]
+AM,WSN_PP1 vs WSN,Upregulated,Sort1,3.30404792196915,5.07174100403556e-14,protein_coding,3,ENSMUSG00000068747,sortilin 1 [Source:MGI Symbol;Acc:MGI:1338015]
+AM,WSN_PP1 vs WSN,Upregulated,Lilra5,4.39678373293041,5.11814409531805e-14,protein_coding,7,ENSMUSG00000070873,"leukocyte immunoglobulin-like receptor, subfamily A (with TM domain), member 5 [Source:MGI Symbol;Acc:MGI:3647196]"
+AEC,WSN vs mock,Downregulated,Gprc5a,-2.79663148431061,0.0,protein_coding,6,ENSMUSG00000046733,"G protein-coupled receptor, family C, group 5, member A [Source:MGI Symbol;Acc:MGI:1891250]"
+AEC,WSN vs mock,Downregulated,Mab21l4,-2.58359083072067,1.84655736392542e-243,protein_coding,1,ENSMUSG00000034159,mab-21-like 4 [Source:MGI Symbol;Acc:MGI:1919124]
+AEC,WSN vs mock,Downregulated,Rab11fip1,-2.84296125340791,6.49117400231346e-240,protein_coding,8,ENSMUSG00000031488,RAB11 family interacting protein 1 (class I) [Source:MGI Symbol;Acc:MGI:1923017]
+AEC,WSN vs mock,Downregulated,Krt19,-2.04826902531142,8.492098294591839e-238,protein_coding,11,ENSMUSG00000020911,keratin 19 [Source:MGI Symbol;Acc:MGI:96693]
+AEC,WSN vs mock,Downregulated,Adgrg1,-2.00040872069601,1.92827025129224e-186,protein_coding,8,ENSMUSG00000031785,adhesion G protein-coupled receptor G1 [Source:MGI Symbol;Acc:MGI:1340051]
+AEC,WSN vs mock,Downregulated,Ctr9,-2.41050534052061,9.52434008506728e-181,protein_coding,7,ENSMUSG00000005609,"CTR9 homolog, Paf1/RNA polymerase II complex component [Source:MGI Symbol;Acc:MGI:109345]"
+AEC,WSN vs mock,Downregulated,Lurap1l,-3.32646265845131,4.81618523648e-173,protein_coding,4,ENSMUSG00000048706,leucine rich adaptor protein 1-like [Source:MGI Symbol;Acc:MGI:106510]
+AEC,WSN vs mock,Downregulated,Rdh10,-2.89216249435585,2.15624127017036e-159,protein_coding,1,ENSMUSG00000025921,retinol dehydrogenase 10 (all-trans) [Source:MGI Symbol;Acc:MGI:1924238]
+AEC,WSN vs mock,Downregulated,Gm73150,-2.17614723241825,9.27302714653956e-159,lncRNA,11,ENSMUSG00000131753,"predicted gene, 73150 [Source:MGI Symbol;Acc:MGI:7829058]"
+AEC,WSN vs mock,Downregulated,Myh14,-2.60311625497447,8.987300418095659e-158,protein_coding,7,ENSMUSG00000030739,"myosin, heavy polypeptide 14 [Source:MGI Symbol;Acc:MGI:1919210]"
+AEC,WSN_PP1 vs WSN,Downregulated,Ifit2,-6.31821459254241,0.0,protein_coding,19,ENSMUSG00000045932,interferon-induced protein with tetratricopeptide repeats 2 [Source:MGI Symbol;Acc:MGI:99449]
+AEC,WSN_PP1 vs WSN,Downregulated,Ifit3,-6.03239343608885,0.0,protein_coding,19,ENSMUSG00000074896,interferon-induced protein with tetratricopeptide repeats 3 [Source:MGI Symbol;Acc:MGI:1101055]
+AEC,WSN_PP1 vs WSN,Downregulated,Gm46878,-5.90482192233933,0.0,lncRNA,4,ENSMUSG00000120951,"predicted gene, 46878 [Source:MGI Symbol;Acc:MGI:5826515]"
+AEC,WSN_PP1 vs WSN,Downregulated,Gbp2,-5.84461313429933,0.0,protein_coding,3,ENSMUSG00000028270,guanylate binding protein 2 [Source:MGI Symbol;Acc:MGI:102772]
+AEC,WSN_PP1 vs WSN,Downregulated,Irf7,-5.82984015549415,0.0,protein_coding,7,ENSMUSG00000025498,interferon regulatory factor 7 [Source:MGI Symbol;Acc:MGI:1859212]
+AEC,WSN_PP1 vs WSN,Downregulated,Isg15,-5.81035898195405,0.0,protein_coding,4,ENSMUSG00000035692,ISG15 ubiquitin-like modifier [Source:MGI Symbol;Acc:MGI:1855694]
+AEC,WSN_PP1 vs WSN,Downregulated,Usp18,-5.61216249605803,0.0,protein_coding,6,ENSMUSG00000030107,ubiquitin specific peptidase 18 [Source:MGI Symbol;Acc:MGI:1344364]
+AEC,WSN_PP1 vs WSN,Downregulated,Cxcl10,-5.5299594067024,0.0,protein_coding,5,ENSMUSG00000034855,C-X-C motif chemokine ligand 10 [Source:MGI Symbol;Acc:MGI:1352450]
+AEC,WSN_PP1 vs WSN,Downregulated,Art3,-5.38396200985209,0.0,protein_coding,5,ENSMUSG00000034842,ADP-ribosyltransferase 3 [Source:MGI Symbol;Acc:MGI:1202729]
+AEC,WSN_PP1 vs WSN,Downregulated,Oasl2,-4.62060731774831,0.0,protein_coding,5,ENSMUSG00000029561,2'-5' oligoadenylate synthetase-like 2 [Source:MGI Symbol;Acc:MGI:1344390]
+AM,WSN vs mock,Downregulated,Maf,-2.75726356977018,2.16488022869958e-20,protein_coding,8,ENSMUSG00000055435,MAF bZIP transcription factor [Source:MGI Symbol;Acc:MGI:96909]
+AM,WSN vs mock,Downregulated,Samtor,-3.46550756055687,1.30013016996367e-14,protein_coding,6,ENSMUSG00000042742,S-adenosylmethionine sensor upstream of mTORC1 [Source:MGI Symbol;Acc:MGI:2141466]
+AM,WSN vs mock,Downregulated,Pik3cg,-2.0949471194193,3.5341738623258e-14,protein_coding,12,ENSMUSG00000020573,"phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit gamma [Source:MGI Symbol;Acc:MGI:1353576]"
+AM,WSN vs mock,Downregulated,Sesn1,-2.97212376844276,5.5236052684484104e-14,protein_coding,10,ENSMUSG00000038332,sestrin 1 [Source:MGI Symbol;Acc:MGI:2155278]
+AM,WSN vs mock,Downregulated,Gpr85,-4.84696378478387,1.1025910079373e-13,protein_coding,6,ENSMUSG00000048216,G protein-coupled receptor 85 [Source:MGI Symbol;Acc:MGI:1927851]
+AM,WSN vs mock,Downregulated,Idh1,-2.06906277510601,7.91078580076923e-13,protein_coding,1,ENSMUSG00000025950,"isocitrate dehydrogenase 1 (NADP+), soluble [Source:MGI Symbol;Acc:MGI:96413]"
+AM,WSN vs mock,Downregulated,Lair1,-2.14183558278798,1.02219404231585e-12,protein_coding,7,ENSMUSG00000055541,leukocyte-associated Ig-like receptor 1 [Source:MGI Symbol;Acc:MGI:105492]
+AM,WSN vs mock,Downregulated,Kitl,-3.04687674983136,2.3263989773482297e-12,protein_coding,10,ENSMUSG00000019966,kit ligand [Source:MGI Symbol;Acc:MGI:96974]
+AM,WSN vs mock,Downregulated,Cd300lb,-3.91060241601616,4.3281029209083695e-12,protein_coding,11,ENSMUSG00000063193,CD300 molecule like family member B [Source:MGI Symbol;Acc:MGI:2685099]
+AM,WSN vs mock,Downregulated,Sephs2,-2.33804270269274,5.88429227303604e-12,protein_coding,7,ENSMUSG00000049091,selenophosphate synthetase 2 [Source:MGI Symbol;Acc:MGI:108388]
+AM,WSN_PP1 vs WSN,Downregulated,Coq8a,-3.64411404446976,1.62419604431185e-35,protein_coding,1,ENSMUSG00000026489,coenzyme Q8A [Source:MGI Symbol;Acc:MGI:1914676]
+AM,WSN_PP1 vs WSN,Downregulated,Lif,-3.11963852853741,1.1218133774117999e-34,protein_coding,11,ENSMUSG00000034394,leukemia inhibitory factor [Source:MGI Symbol;Acc:MGI:96787]
+AM,WSN_PP1 vs WSN,Downregulated,Thbs1,-2.73316095756758,9.35699724807203e-28,protein_coding,2,ENSMUSG00000040152,thrombospondin 1 [Source:MGI Symbol;Acc:MGI:98737]
+AM,WSN_PP1 vs WSN,Downregulated,Saa3,-4.16892505926743,4.43333454526639e-27,protein_coding,7,ENSMUSG00000040026,serum amyloid A 3 [Source:MGI Symbol;Acc:MGI:98223]
+AM,WSN_PP1 vs WSN,Downregulated,Ccl5,-2.68348781204053,1.50209890176836e-26,protein_coding,11,ENSMUSG00000035042,C-C motif chemokine ligand 5 [Source:MGI Symbol;Acc:MGI:98262]
+AM,WSN_PP1 vs WSN,Downregulated,Inhba,-3.6326836768317,2.47702199820044e-26,protein_coding,13,ENSMUSG00000041324,inhibin beta-A [Source:MGI Symbol;Acc:MGI:96570]
+AM,WSN_PP1 vs WSN,Downregulated,Timp1,-2.62063451038518,4.35515010711378e-26,protein_coding,X,ENSMUSG00000001131,tissue inhibitor of metalloproteinase 1 [Source:MGI Symbol;Acc:MGI:98752]
+AM,WSN_PP1 vs WSN,Downregulated,Slamf9,-3.50333984318273,7.41322652248508e-24,protein_coding,1,ENSMUSG00000026548,SLAM family member 9 [Source:MGI Symbol;Acc:MGI:1923692]
+AM,WSN_PP1 vs WSN,Downregulated,Garin1a,-5.81358691079965,2.67887802519169e-21,protein_coding,6,ENSMUSG00000079652,golgi associated RAB2 interactor 1A [Source:MGI Symbol;Acc:MGI:2141439]
+AM,WSN_PP1 vs WSN,Downregulated,Vegfa,-3.29785423717067,4.1006695769954404e-21,protein_coding,17,ENSMUSG00000023951,vascular endothelial growth factor A [Source:MGI Symbol;Acc:MGI:103178]
