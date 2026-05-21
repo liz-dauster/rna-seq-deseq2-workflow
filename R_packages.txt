@@ -1,0 +1,22 @@
+# R package dependencies for DESeq2_GSE203539.Rmd
+
+Bioconductor:
+DESeq2
+EnhancedVolcano
+pheatmap
+ComplexHeatmap
+biomaRt
+org.Mm.eg.db
+AnnotationDbi
+clusterProfiler
+
+CRAN:
+tidyverse
+ggplot2
+ggrepel
+dplyr
+readr
+tibble
+knitr
+rmarkdown
+circlize
